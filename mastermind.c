@@ -26,6 +26,7 @@ void compute_result(char* solution, char* prop, char* res){ // ! Revérifier
     int match[PIN];
     // Bonne valeur bien placée
     for (int i = 0; i < PIN; i++){
+        // printf("solution[%d] = %c, prop[%d] = %c\n", i, solution[i], i, prop[i]);
         if (solution[i] == prop[i])
             match[i] = 2; 
         else
@@ -79,16 +80,17 @@ int main(int argc, char* argv[]) {
     // * Define a solution
     char solution[PIN+1];
     if (game_mode == 0){
-        for(int i = 0; i < 4; i++){
+        for(int i = 0; i < PIN; i++){
             solution[i] = rand() % 5 + 48;
         }
-        printf("%s\n", solution);
+        solution[PIN] = '\0';
+        printf("%s\n", solution); // TODO : Remove 
 
         for(int i = 0; i < CHANCES; i++){
             printf("Chances restantes : %d\n", CHANCES - i);
 
             int OK = 0;
-            char prop[PIN];
+            char prop[PIN+1];
 
             while(!OK){
                 printf("Proposition : ");
@@ -101,7 +103,7 @@ int main(int argc, char* argv[]) {
             char res[PIN+1];
             compute_result(solution, prop, res);
             printf("%s\n", res);
-            if(prop == solution){
+            if(strcmp(prop, solution) == 0) {
                 printf("Gagné !\n");
                 break;
             }
