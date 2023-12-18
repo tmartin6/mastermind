@@ -71,8 +71,23 @@ void random_machine(char* prop){
     prop[PIN] = '\0';
 }
 
+int compute_score(char* res){
+    int s = 0;
+    for (int i = 0; i < PIN; i++){
+        if (res[i] == 'X') 
+            s += 10;
+        else if (res[i] == 'O')
+            s += 1;
+    }
+    return s;
+}
 
 int main(int argc, char* argv[]) {
+
+    // ? Zone de test
+    // ?    
+
+
     srand(time(NULL));
     // * Game mode 
     int game_mode = -1; // Random : 0, From file : 1, Player entry : 2
