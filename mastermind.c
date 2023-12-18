@@ -22,7 +22,7 @@ int verif_proposition(char* prop){
     return 0;
 }
 
-void compute_result(char* solution, char* prop, char* res){ // ! Revérifier 
+void compute_result(char* solution, char* prop, char* res){  
     int match[PIN];
     // Bonne valeur bien placée
     for (int i = 0; i < PIN; i++){
@@ -37,7 +37,7 @@ void compute_result(char* solution, char* prop, char* res){ // ! Revérifier
         for (int j = 0; j < PIN; j++){ // j -> solution
             if (match[i] != 2 && match[j] != 2){
                 if (solution[j] == prop[i]){
-                    match[i] = 1;
+                    match[j] = 1;
                 }
             }
         }
@@ -64,6 +64,7 @@ void compute_result(char* solution, char* prop, char* res){ // ! Revérifier
     res[PIN] = '\0';
 }
 
+
 int main(int argc, char* argv[]) {
         char res[PIN];
         compute_result("5524", "1525", res);
@@ -78,11 +79,11 @@ int main(int argc, char* argv[]) {
     }
 
     // * Define a solution
-    char solution[PIN+1];
+    char solution[PIN+1] = {'5','3','2','1', '\0'};
     if (game_mode == 0){
-        for(int i = 0; i < PIN; i++){
-            solution[i] = rand() % 5 + 48;
-        }
+        // for(int i = 0; i < PIN; i++){
+        //     solution[i] = rand() % 5 + 48;
+        // }
         solution[PIN] = '\0';
         printf("%s\n", solution); // TODO : Remove 
 
@@ -121,7 +122,34 @@ int main(int argc, char* argv[]) {
             }
         }
         fscanf(input, "%s", solution);
+        solution[PIN] = '\0';
+        printf("%s", solution);
 
+        for(int i = 0; i < CHANCES; i++){
+            printf("Chances restantes : %d\n", CHANCES - i);
+
+            int OK = 0;
+            char prop[PIN+1];
+
+            while(!OK){
+                printf("Proposition : ");
+                fscanf(input, "%s", prop);
+                prop[PIN] = '\0';
+                printf("%s\n", prop);
+                if(verif_proposition(prop))
+                    OK = 1;
+                else   
+                    printf("Vous devez choisir 4 chiffres entre 0 et 5 ! \n\n");
+            }
+            fscanf(input, "%*s");
+            char res[PIN+1];
+            compute_result(solution, prop, res);
+            printf("%s\n", res);
+            if(strcmp(prop, solution) == 0) {
+                printf("Gagné !\n");
+                break;
+            }
+        } 
 
         if (argc>1) {
             fclose(input);
