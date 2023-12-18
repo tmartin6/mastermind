@@ -23,33 +23,33 @@ int verif_proposition(char* prop){
 }
 
 void compute_result(char* solution, char* prop, char* res){  
-    int match[PIN];
-    // Bonne valeur bien placée
-    for (int i = 0; i < PIN; i++){
-        // printf("solution[%d] = %c, prop[%d] = %c\n", i, solution[i], i, prop[i]);
-        if (solution[i] == prop[i])
-            match[i] = 2; 
-        else
-            match[i] = 0; 
-    }
-    // Bonne valeur mal placée
-    for(int i = 0; i < PIN; i++){ // i -> proposition
-        for (int j = 0; j < PIN; j++){ // j -> solution
-            if (match[i] != 2 && match[j] != 2){
-                if (solution[j] == prop[i]){
-                    match[j] = 1;
-                }
-            }
-        }
-    }
+    int sol_edited[PIN] = {0};
+    int prop_edited[PIN] = {0};
 
     int nb_X = 0;
     int nb_O = 0;
+
+    // Bonne valeur bien placée
     for (int i = 0; i < PIN; i++){
-        if (match[i] == 2)    
-            nb_X ++;
-        else if (match[i] == 1)
-            nb_O ++;
+        if (solution[i] == prop[i]){
+            nb_X++;
+            sol_edited[i] = 1;
+            prop_edited[i] = 1;
+        }
+    }
+    // Bonne valeur mal placée
+    for(int i = 0; i < PIN; i++){ // i -> proposition
+        if(!prop_edited[i])
+            for (int j = 0; j < PIN; j++){ // j -> solution
+                if (!sol_edited[j]){
+                    if (solution[j] == prop[i]){
+                        nb_O++;
+                        sol_edited[j] = 1;
+                        prop_edited[i] = 1;
+                        break;
+                    }
+                }
+            }
     }
 
     for (int i = 0; i < nb_X; i++){
@@ -64,12 +64,15 @@ void compute_result(char* solution, char* prop, char* res){
     res[PIN] = '\0';
 }
 
+void random_machine(char* prop){
+    for(int i = 0; i < PIN; i++){
+        prop[i] = rand() % 5 + 48;
+    }
+    prop[PIN] = '\0';
+}
+
 
 int main(int argc, char* argv[]) {
-        char res[PIN];
-        compute_result("5524", "1525", res);
-            printf("%s\n", res);
-
     srand(time(NULL));
     // * Game mode 
     int game_mode = -1; // Random : 0, From file : 1, Player entry : 2
@@ -79,11 +82,11 @@ int main(int argc, char* argv[]) {
     }
 
     // * Define a solution
-    char solution[PIN+1] = {'5','3','2','1', '\0'};
+    char solution[PIN+1];
     if (game_mode == 0){
-        // for(int i = 0; i < PIN; i++){
-        //     solution[i] = rand() % 5 + 48;
-        // }
+        for(int i = 0; i < PIN; i++){
+            solution[i] = rand() % 5 + 48;
+        }
         solution[PIN] = '\0';
         printf("%s\n", solution); // TODO : Remove 
 
@@ -170,6 +173,31 @@ int main(int argc, char* argv[]) {
                     OK = 0;
                 }
                 solution[i] = c[i];
+            }
+        }
+
+        int mode = -1; // 0 -> random, 1 -> optimisé
+        while(mode != 0 && mode != 1){
+            printf("Version aléatoire (0) ou optimisée (1) ? ");
+            scanf("%d", &mode);
+        }
+
+        // * Random mode
+
+        if (mode == 0){
+            printf("Solution : %s\n", solution);
+            for(int i = 0; i < CHANCES; i++){
+                printf("Chances restantes : %d\n", CHANCES - i);
+                char prop[PIN+1];
+                random_machine(prop);
+                printf("%s\n", prop);
+                char res[PIN+1];
+                compute_result(solution, prop, res);
+                printf("%s\n", res);
+                if(strcmp(prop, solution) == 0) {
+                    printf("Gagné !\n");
+                    break;
+            }
             }
         }
     }
