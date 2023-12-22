@@ -9,7 +9,6 @@
 #define PIN      4     
 #define CHANCES  12    
 
-
 int verif_proposition(char* prop){
     int n = strlen(prop);
     if (n == PIN){
@@ -39,7 +38,7 @@ void compute_result(char* solution, char* prop, char* res){
     }
     // Bonne valeur mal placée
     for(int i = 0; i < PIN; i++){ // i -> proposition
-        if(!prop_edited[i])
+        if(!prop_edited[i]){
             for (int j = 0; j < PIN; j++){ // j -> solution
                 if (!sol_edited[j]){
                     if (solution[j] == prop[i]){
@@ -50,6 +49,7 @@ void compute_result(char* solution, char* prop, char* res){
                     }
                 }
             }
+        }
     }
 
     for (int i = 0; i < nb_X; i++){
@@ -82,13 +82,137 @@ int compute_score(char* res){
     return s;
 }
 
+int score(char* solution, char* prop){
+    char tmp[PIN+1];
+    compute_result(solution, prop, tmp);
+    return compute_score(tmp);
+}
+
+int comb_to_i(char* comb){
+    int n = 1;
+    int i = 0;
+    for (int j = PIN-1; j >= 0; j--){
+        i += n*(comb[j]-48);
+        n *= 6;
+    }
+    return i;
+}
+
+void i_to_comb(int i, char* comb) {
+    for (int j = PIN-1; j >= 0; j--) {
+        comb[j] = i % 6 + 48; 
+        i /= 6;
+    }
+    comb[PIN] = '\0'; 
+}
+
+int first_index_1(int* t){
+    int i = 0;
+    while(t[i] != 1){
+        i++;
+    }
+    return i;
+}
+
+void machine_eliminate(char* solution){
+    int CAND[1296];
+    for (int i = 0; i < 1296; i++){
+        CAND[i]=1;
+    }
+    char comb[PIN+1];
+    int i_comb = rand()%1296;
+    i_to_comb(i_comb, comb);
+    char res[PIN+1];
+    compute_result(solution, comb, res);
+    int s = compute_score(res);
+    int essai = 0;
+    printf("Chances restantes : %d\n", CHANCES - essai);
+    printf("%s\n", comb);
+    printf("%s\n", res);
+    essai++;
+    while((s != 40) && (essai < CHANCES)){
+        for (int i = 0; i < 1296; i++){
+            if(CAND[i] != 0){
+                char tmp[PIN+1];
+                i_to_comb(i, tmp);
+                printf("%s\n", tmp);
+                if (score(comb, tmp) != s)
+                    CAND[i] = 0; 
+            }  
+        }
+        printf("***%d***", i_comb);
+        CAND[i_comb] = 0;
+        printf("Chances restantes : %d\n", CHANCES - essai);
+        i_comb = first_index_1(CAND);
+        i_to_comb(i_comb, comb);
+        // printf("%d", first_index_1(CAND));
+        printf("%s\n", comb);
+        compute_result(solution,comb,res);
+        printf("%s\n", res);
+        s = compute_score(res);
+        essai++;
+    }
+}
+
+int nb_candidat(int* CAND){
+    int res = 0;
+    for(int i = 0; i < 1296; i++){
+        res += CAND[i];
+    }
+};
+
+int max_tab(int* tab){
+    int max = 0;
+    for(int i = 0; i < 41; i++){
+        if (tab[i] > max){
+            max = tab[i];
+        }
+    }
+    return max;
+}
+
+char* meilleure_prop(int* CAND){
+    if(nb_candidat(CAND) == 1)
+        return first_index_1(CAND);
+
+    // * Création TAB
+    int** TAB = malloc(1296*sizeof(int*));
+    for (int i = 0; i < 1296; i++) {
+        TAB[i] = (int *)malloc(41 * sizeof(int));
+        for (int j = 0; j < 41; j++){
+            TAB[i][j] = 0;
+        }
+    }
+
+    int i = 0;
+    for (int j = 0; j < 1296; j++){
+        for (int k = 0; j < 1296; k++){
+            if (CAND[k] == 1){
+                char P[PIN+1];
+                i_to_comb(j, P);
+                char C[PIN+1];
+                i_to_comb(k, C);
+                int s = score(P, C);
+                TAB[i][s]++;
+            }
+            i++;
+        }
+    }
+
+    int MAX[1296];
+    for(int i = 0; i < 1296; i++){
+        MAX[i] = max_tab(TAB[i]);
+    }
+
+}
+
 int main(int argc, char* argv[]) {
 
     // ? Zone de test
     // ?    
 
 
-    srand(time(NULL));
+    // srand(time(NULL));   
     // * Game mode 
     int game_mode = -1; // Random : 0, From file : 1, Player entry : 2
     while((game_mode != 0) && (game_mode != 1) && (game_mode != 2)){
@@ -193,7 +317,7 @@ int main(int argc, char* argv[]) {
 
         int mode = -1; // 0 -> random, 1 -> optimisé
         while(mode != 0 && mode != 1){
-            printf("Version aléatoire (0) ou optimisée (1) ? ");
+            printf("Version aléatoire (0) ou par élimination (1) ? ");
             scanf("%d", &mode);
         }
 
@@ -214,6 +338,10 @@ int main(int argc, char* argv[]) {
                     break;
             }
             }
+        }
+
+        if (mode == 1){
+            machine_eliminate(solution);
         }
     }
 
