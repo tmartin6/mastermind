@@ -135,17 +135,14 @@ void machine_eliminate(char* solution){
             if(CAND[i] != 0){
                 char tmp[PIN+1];
                 i_to_comb(i, tmp);
-                printf("%s\n", tmp);
                 if (score(comb, tmp) != s)
                     CAND[i] = 0; 
             }  
         }
-        printf("***%d***", i_comb);
         CAND[i_comb] = 0;
         printf("Chances restantes : %d\n", CHANCES - essai);
         i_comb = first_index_1(CAND);
         i_to_comb(i_comb, comb);
-        // printf("%d", first_index_1(CAND));
         printf("%s\n", comb);
         compute_result(solution,comb,res);
         printf("%s\n", res);
@@ -159,10 +156,11 @@ int nb_candidat(int* CAND){
     for(int i = 0; i < 1296; i++){
         res += CAND[i];
     }
-};
+    return res;
+}
 
 int max_tab(int* tab){
-    int max = 0;
+    int max = tab[0];
     for(int i = 0; i < 41; i++){
         if (tab[i] > max){
             max = tab[i];
@@ -171,9 +169,24 @@ int max_tab(int* tab){
     return max;
 }
 
-char* meilleure_prop(int* CAND){
-    if(nb_candidat(CAND) == 1)
-        return first_index_1(CAND);
+int index_min_tab(int* tab){
+    int min = tab[0];
+    int index_min = 0;
+    for(int i = 0; i < 41; i++){
+        if (tab[i] < min){
+            min = tab[i];
+            index_min = i;
+        }
+    }
+    return index_min;
+}
+
+void meilleure_prop(int* CAND, char* P){
+    if(nb_candidat(CAND) == 1){
+        int index_P = first_index_1(CAND);
+        i_to_comb(index_P, P);
+        exit(0);
+    }
 
     // * Création TAB
     int** TAB = malloc(1296*sizeof(int*));
@@ -203,16 +216,47 @@ char* meilleure_prop(int* CAND){
     for(int i = 0; i < 1296; i++){
         MAX[i] = max_tab(TAB[i]);
     }
+    int index_P = index_min_tab(MAX);
+    i_to_comb(index_P, P);
+}
 
+void machine_optimal(char* solution){
+int CAND[1296];
+    for (int i = 0; i < 1296; i++){
+        CAND[i]=1;
+    }
+    char P[PIN+1];
+    meilleure_prop(CAND, P);
+    char res[PIN+1];
+    compute_result(solution, P, res);
+    int s = compute_score(res);
+    int essai = 0;
+    printf("Chances restantes : %d\n", CHANCES - essai);
+    printf("%s\n", P);
+    printf("%s\n", res);
+    essai++;
+    while((s != 40) && (essai < CHANCES)){
+        for (int i = 0; i < 1296; i++){
+            if(CAND[i] != 0){
+                char tmp[PIN+1];
+                i_to_comb(i, tmp);
+                if (score(P, tmp) != s)
+                    CAND[i] = 0; 
+            }  
+        }
+        // CAND[i_comb] = 0;
+        printf("Chances restantes : %d\n", CHANCES - essai);
+        meilleure_prop(CAND, P);
+        printf("%s\n", P);
+        compute_result(solution,P,res);
+        printf("%s\n", res);
+        s = compute_score(res);
+        essai++;
+    }
 }
 
 int main(int argc, char* argv[]) {
-
-    // ? Zone de test
-    // ?    
-
-
-    // srand(time(NULL));   
+    srand(time(NULL));   
     // * Game mode 
     int game_mode = -1; // Random : 0, From file : 1, Player entry : 2
     while((game_mode != 0) && (game_mode != 1) && (game_mode != 2)){
@@ -227,7 +271,6 @@ int main(int argc, char* argv[]) {
             solution[i] = rand() % 5 + 48;
         }
         solution[PIN] = '\0';
-        printf("%s\n", solution); // TODO : Remove 
 
         for(int i = 0; i < CHANCES; i++){
             printf("Chances restantes : %d\n", CHANCES - i);
@@ -316,8 +359,8 @@ int main(int argc, char* argv[]) {
         }
 
         int mode = -1; // 0 -> random, 1 -> optimisé
-        while(mode != 0 && mode != 1){
-            printf("Version aléatoire (0) ou par élimination (1) ? ");
+        while(mode != 0 && mode != 1 && mode != 2){
+            printf("Version aléatoire (0), par élimination (1) ou optimale (2) ? ");
             scanf("%d", &mode);
         }
 
@@ -342,6 +385,10 @@ int main(int argc, char* argv[]) {
 
         if (mode == 1){
             machine_eliminate(solution);
+        }
+
+        if(mode == 2){
+            machine_optimal(solution);
         }
     }
 
